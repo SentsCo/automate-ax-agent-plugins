@@ -1,0 +1,22 @@
+{
+  "name": "automate-ax",
+  "owner": {
+    "name": "Automate.ax",
+    "email": "hello@automate.ax"
+  },
+  "metadata": {
+    "description": "Official Automate.ax agent plugins for building and operating automations."
+  },
+  "plugins": [
+    {
+      "name": "automate-ax",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/SentsCo/automate-ax-agent-plugins.git"
+      },
+      "description": "Build, deploy, and maintain Automate.ax automations through an agent-driven workflow.",
+      "category": "development",
+      "homepage": "https://automate.ax"
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "name": "automate-ax",
+  "version": "0.1.0",
+  "description": "Build, deploy, and maintain Automate.ax automations through an agent-driven workflow.",
+  "author": {
+    "name": "Automate.ax",
+    "email": "hello@automate.ax",
+    "url": "https://automate.ax"
+  },
+  "homepage": "https://automate.ax",
+  "repository": "https://github.com/SentsCo/automate-ax-agent-plugins",
+  "license": "MIT",
+  "keywords": ["automation", "automation-as-code", "typescript", "agents"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Automate.ax",
+    "shortDescription": "Build and operate automations through your agent",
+    "longDescription": "Give your agent an automation brief and let it set up the CLI, write and validate TypeScript, handle browser authorization, deploy, and maintain the project.",
+    "developerName": "Automate.ax",
+    "category": "Developer Tools",
+    "capabilities": ["Interactive", "Read", "Write"],
+    "websiteURL": "https://automate.ax",
+    "privacyPolicyURL": "https://automate.ax/privacy",
+    "termsOfServiceURL": "https://automate.ax/terms",
+    "defaultPrompt": [
+      "Build and deploy an automation for this process.",
+      "Upgrade this Automate.ax project and fix compatibility issues.",
+      "Diagnose why this automation is not deploying."
+    ]
+  }
+}

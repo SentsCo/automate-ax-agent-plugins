@@ -1,0 +1,4 @@
+interface:
+  display_name: "Automate.ax"
+  short_description: "Build and operate Automate.ax automations"
+  default_prompt: "Use $automate-ax to build and deploy the automation I describe."

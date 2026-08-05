@@ -1,0 +1,14 @@
+{
+  "name": "automate-ax",
+  "version": "0.1.0",
+  "description": "Build, deploy, and maintain Automate.ax automations through an agent-driven workflow.",
+  "author": {
+    "name": "Automate.ax",
+    "email": "hello@automate.ax",
+    "url": "https://automate.ax"
+  },
+  "homepage": "https://automate.ax",
+  "repository": "https://github.com/SentsCo/automate-ax-agent-plugins",
+  "license": "MIT",
+  "keywords": ["automation", "automation-as-code", "typescript", "agents"]
+}
