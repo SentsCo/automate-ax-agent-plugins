@@ -7,6 +7,8 @@ description: Build, deploy, operate, debug, and upgrade Automate.ax automation-a
 
 Own the workflow end to end. Treat the CLI as an implementation detail: run it, answer its non-secret prompts, write the automation code, validate it, and continue through any requested deployment or maintenance work. Do not hand the user a list of commands when you can perform the work.
 
+Keep internal guidance internal. During setup and discovery, talk in terms of what was completed, what the user needs to do, and what they want to automate. Do not volunteer execution-model or platform-architecture details unless the user asks or needs them to make a decision.
+
 ## Operate the CLI
 
 - Work in the user's intended project directory. Inspect existing files before changing anything.
