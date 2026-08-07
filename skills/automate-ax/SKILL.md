@@ -11,8 +11,8 @@ Keep internal guidance internal. During setup and discovery, talk in terms of wh
 
 ## Operate the CLI
 
-- Work in the user's intended project directory. Inspect existing files before changing anything.
-- Use Bun. If `bun` is unavailable, install it with `curl -fsSL https://bun.com/install | bash` on macOS/Linux or `powershell -c "irm bun.sh/install.ps1|iex"` on Windows, reload the shell environment, and verify `bun --version`.
+- If the current directory is an existing project, work there. Otherwise, create a new project directory before installing packages or writing Automate.ax files. Inspect existing files before changing anything.
+- Follow an explicit package-manager preference. Otherwise, preserve the existing project's package manager or choose an available one for a new project. The examples below use Bun; translate them to the selected package manager without asking the user to choose.
 - For bootstrap and diagnosis without a local installation, run `bunx automate.ax@latest <command>`. Once initialized, prefer the project's installed CLI with `bunx automate.ax <command>` so CLI and SDK stay aligned.
 - Run `bunx automate.ax@latest --help` or the relevant subcommand help when flags or capabilities are uncertain. Use JSON output only for non-interactive inspection; it disables interactive authorization flows.
 - Run interactive commands in a persistent terminal/PTY. Respond to choices from known context instead of asking the user to operate the CLI.
