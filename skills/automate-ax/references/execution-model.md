@@ -33,14 +33,14 @@ Transforms must be pure and replay-safe. They describe a calculation over materi
 
 These forms all create derived signals; none reads a value during composition:
 
-| Form                                            | Meaning                                                                                   |
-| ----------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `transform([a, b], (aValue, bValue) => result)` | Derive a value from multiple signals.                                                     |
-| `value.transform((resolved) => result)`         | Unary convenience form of `transform`.                                                    |
-| `value.property`                                | Shorthand for `value.transform((resolved) => resolved.property)`.                         |
-| `value.method(arguments)`                       | Property projection followed by a function-call transform; the method keeps its receiver. |
-| `functionSignal(arguments)`                     | Shorthand for transforming the eventual function call result.                             |
-| `` t`text ${value}` ``                          | Create a string signal; only signal interpolations become dependencies.                   |
+| Form | Meaning |
+| --- | --- |
+| `transform([a, b], (aValue, bValue) => result)` | Derive a value from multiple signals. |
+| `value.transform((resolved) => result)` | Unary convenience form of `transform`. |
+| `value.property` | Shorthand for `value.transform((resolved) => resolved.property)`. |
+| `value.method(arguments)` | Property projection followed by a function-call transform; the method keeps its receiver. |
+| `functionSignal(arguments)` | Shorthand for transforming the eventual function call result. |
+| `` t`text ${value}` `` | Create a string signal; only signal interpolations become dependencies. |
 
 Property and call syntax composes through chains. For example, `request.path.trim().toLowerCase()` is a `Signal<string>`, and `names.join(", ")` on a `Signal<string[]>` is semantically equivalent to `names.transform((resolved) => resolved.join(", "))`. Accessing a property on an eventual `null` or `undefined` fails with a `TypeError` during execution.
 
@@ -48,14 +48,14 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 
 ## Control flow and dependencies
 
-| Primitive                                 | Semantics                                                                                                                                     |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `gate(value, condition, expected = true)` | Emit `value` only when the boolean condition equals `expected`; otherwise close without materializing `value`.                                |
-| `filter(value, predicate)`                | Evaluate a pure predicate after `value` materializes; preserve the original value when true and close when false.                             |
-| `partition(value, predicate)`             | Return `[matched, unmatched]` complementary gates; exactly one side preserves the original value.                                             |
-| `group(dependencies, fn)`                 | Traverse `fn` synchronously and add those signals as inherited dependencies to every action inside, even if its inputs do not reference them. |
-| `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary grouped gates so only the selected side's actions execute.                                             |
-| `closed(value)` / `failed(value)`         | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur.                              |
+| Primitive | Semantics |
+| --- | --- |
+| `gate(value, condition, expected = true)` | Emit `value` only when the boolean condition equals `expected`; otherwise close without materializing `value`. |
+| `filter(value, predicate)` | Evaluate a pure predicate after `value` materializes; preserve the original value when true and close when false. |
+| `partition(value, predicate)` | Return `[matched, unmatched]` complementary gates; exactly one side preserves the original value. |
+| `group(dependencies, fn)` | Traverse `fn` synchronously and add those signals as inherited dependencies to every action inside, even if its inputs do not reference them. |
+| `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary grouped gates so only the selected side's actions execute. |
+| `closed(value)` / `failed(value)` | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur. |
 
 Use `group` to make a section wait for readiness or successful completion that is not otherwise represented in an action input. A group adds dependencies only; it does not create a persisted scope or execute its callback later.
 
