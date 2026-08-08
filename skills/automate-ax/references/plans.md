@@ -12,13 +12,15 @@ Use the returned plan, usage, and limits as the operational truth. If the active
 
 The current server plan definitions enforce these limits:
 
-| Plan       |  Projects |     Seats |
-| ---------- | --------: | --------: |
-| Free       |         1 |         1 |
-| Pro        |        25 |        10 |
-| Enterprise | Unlimited | Unlimited |
+| Plan | Projects | Seats | AI generations / month | Email recipients / month |
+| --- | --: | --: | --: | --: |
+| Free | 1 | 1 | 100 | 100 |
+| Pro | 25 | 10 | 5,000 | 5,000 |
+| Enterprise | Unlimited | Unlimited | Unlimited | Unlimited |
 
 Preflight project creation and invitations before asking the user for a project name or email address. When the limit is reached, explain which resource is exhausted and offer to run the appropriate organization upgrade or billing flow. Do not silently start checkout or change a subscription without explicit user intent.
+
+Platform-backed `generate` calls consume one AI generation. Calls using customer-managed AI credentials do not. Built-in `sendEmail` calls consume one email unit per recipient, including each organization member selected by `"*"`. These counters reset at the start of each UTC calendar month.
 
 ## Other advertised entitlements
 
