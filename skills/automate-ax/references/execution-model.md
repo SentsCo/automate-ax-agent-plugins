@@ -6,7 +6,7 @@ Use this mental model when authoring or reviewing an automation. The installed S
 
 Automate.ax is inspired by React's execution model. The automation function is a synchronous, declarative render of durable computation:
 
-- The same bundle may replay during planning, orchestration, and execution.
+- The same bundle may replay during planning and each durable context advance.
 - Each event gets a fresh automation context.
 - Calls are identified by deterministic slot order, much like hooks. Keep action order and literal call structure stable across replays.
 - Ordinary helpers, callbacks, and loops are fine when their structure is deterministic.
@@ -27,7 +27,7 @@ A signal terminates exactly once by:
 
 Compose signals synchronously instead of awaiting or inspecting them. Pass them into actions and compose them with the installed SDK's signal operations. The runtime records dependencies and materializes values later.
 
-Transforms must be pure and replay-safe. They describe a calculation over materialized dependencies; they do not run when orchestration first encounters them. Closure and failure propagate through dependent computation unless an SDK primitive explicitly handles them.
+Transforms must be pure and replay-safe. They describe a calculation over materialized dependencies; they do not run when symbolic traversal first encounters them. Closure and failure propagate through dependent computation unless an SDK primitive explicitly handles them.
 
 ## Transform and proxy syntax
 
@@ -53,11 +53,16 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 | `gate(value, condition, expected = true)` | Emit `value` only when the boolean condition equals `expected`; otherwise close without materializing `value`. |
 | `filter(value, predicate)` | Evaluate a pure predicate after `value` materializes; preserve the original value when true and close when false. |
 | `partition(value, predicate)` | Return `[matched, unmatched]` complementary gates; exactly one side preserves the original value. |
-| `group(dependencies, fn)` | Traverse `fn` synchronously and add those signals as inherited dependencies to every action inside, even if its inputs do not reference them. |
+| `fallback(values)` | Select the first declared signal that does not close; an earlier pending signal blocks later inputs. |
+| `race(values)` | Persist the earliest emitted or failed input by durable outcome order; closed inputs leave the race. |
+| `correlate({ streams })` | Derive one key per arriving stream value and consume one exact-key value from every named stream into a child context. |
+| `group(dependencies, fn)` | Traverse `fn` synchronously and add those signals as inherited dependencies to every durable operation inside, even if its inputs do not reference them. |
 | `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary grouped gates so only the selected side's actions execute. |
 | `closed(value)` / `failed(value)` | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur. |
 
-Use `group` to make a section wait for readiness or successful completion that is not otherwise represented in an action input. A group adds dependencies only; it does not create a persisted scope or execute its callback later.
+Use `group` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A group adds dependencies only; it does not create a persisted scope or execute its callback later.
+
+Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and materializes the named values as a signal in a child context referencing the matched parent contexts.
 
 Every provided `branch` callback is traversed immediately during synchronous composition so its action calls receive deterministic slots. Keep the callbacks pure apart from declaring actions. If both callbacks return signals, `branch` returns a deferred union signal containing the selected result. If either callback returns a signal, both must do so when a false callback is present; a one-sided signal branch closes when false.
 
