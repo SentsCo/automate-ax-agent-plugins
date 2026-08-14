@@ -55,7 +55,7 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 | `partition(value, predicate)` | Return `[matched, unmatched]` complementary gates; exactly one side preserves the original value. |
 | `fallback(values)` | Select the first declared signal that does not close; an earlier pending signal blocks later inputs. |
 | `race(values)` | Persist the earliest emitted or failed input by durable outcome order; closed inputs leave the race. |
-| `correlate({ streams })` | Derive one key per arriving stream value and consume one exact-key value from every named stream into a child context. |
+| `correlate(streams, options?)` | Eagerly consume one exact-key value from every `withIndex()` signal into a child context with merged parent history. |
 | `group(dependencies, fn)` | Traverse `fn` synchronously and add those signals as inherited dependencies to every durable operation inside, even if its inputs do not reference them. |
 | `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary grouped gates so only the selected side's actions execute. |
 | `closed(value)` / `failed(value)` | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur. |
