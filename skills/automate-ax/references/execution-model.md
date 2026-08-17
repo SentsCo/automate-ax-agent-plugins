@@ -50,19 +50,19 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 
 | Primitive | Semantics |
 | --- | --- |
-| `gate(value, condition, expected = true)` | Emit `value` only when the boolean condition equals `expected`; otherwise close without materializing `value`. |
+| `gate(value, condition)` | Emit `value` only when the condition is true; otherwise close without materializing `value`. |
 | `filter(value, predicate)` | Evaluate a pure predicate after `value` materializes; preserve the original value when true and close when false. |
 | `partition(value, predicate)` | Return `[matched, unmatched]` complementary gates; exactly one side preserves the original value. |
 | `fallback(values)` | Select the first declared signal that does not close; an earlier pending signal blocks later inputs. |
 | `race(values)` | Persist the earliest emitted or failed input by durable outcome order; closed inputs leave the race. |
 | `correlate(streams, options?)` | Eagerly consume one exact-key value from every `withIndex()` signal into a child context with merged parent history. |
-| `group(dependencies, fn)` | Traverse `fn` synchronously and add those signals as inherited dependencies to every durable operation inside, even if its inputs do not reference them. |
-| `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary grouped gates so only the selected side's actions execute. |
+| `scope(dependenciesOrOptions?, fn)` | Traverse `fn` in an isolated durable hook namespace and optionally give every declaration inherited dependencies and UI presentation metadata. |
+| `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary scoped gates so only the selected side's actions execute. |
 | `closed(value)` / `failed(value)` | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur. |
 
-Use `group` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A group adds dependencies only; it does not create a persisted scope or execute its callback later.
+Use `scope` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A scope gives nested durable declarations their own hook namespace. Pass `{ name, presentation }` when the section should also appear as a named composition in the execution UI. The callback still runs synchronously during composition.
 
-Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and materializes the named values as a signal in a child context referencing the matched parent contexts.
+Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and creates a child context whose merged parent history can resolve the original indexed streams. The returned `Signal<null>` represents completion of the correlation boundary.
 
 Every provided `branch` callback is traversed immediately during synchronous composition so its action calls receive deterministic slots. Keep the callbacks pure apart from declaring actions. If both callbacks return signals, `branch` returns a deferred union signal containing the selected result. If either callback returns a signal, both must do so when a false callback is present; a one-sided signal branch closes when false.
 
@@ -76,7 +76,7 @@ An action is the effect boundary:
 - Feed action outputs into downstream work through returned signals.
 - Expect a thrown action failure to be retried by the runtime; design external writes to be idempotent where repeated attempts could matter.
 
-The runtime replays the bundle, materializes an action's dependencies and transforms, executes the matching action slot, and records its terminal outcome. Durable action identity includes the context and slot; compatibility also depends on the action name, literal input shape, binding, and dependencies. Changing those details can make an in-flight execution incompatible with the new bundle.
+The runtime replays the bundle, materializes an action's dependencies and transforms, executes the matching action slot, and records its terminal outcome. Durable action identity includes the context, scope path, and slot; compatibility also depends on the action name, literal input shape, binding, and dependencies. Changing those details can make an in-flight execution incompatible with the new bundle.
 
 ## Review checklist
 
