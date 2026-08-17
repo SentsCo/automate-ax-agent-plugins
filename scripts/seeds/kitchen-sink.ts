@@ -201,8 +201,11 @@ export async function seed(db: Kysely<DB>) {
           serviceSub: "dev-seed-resend",
         },
       ])
-      .returning(["id", "serviceId"])
+      .returning(["id", "serviceId", "serviceSub"])
       .execute()
+    const googleAccount = accounts.find(
+      ({ serviceId }) => serviceId === "google",
+    )!
     const accountLinks = await trx
       .insertInto("integrationAccountLink")
       .values(
@@ -359,10 +362,34 @@ export async function seed(db: Kysely<DB>) {
           serviceId: "slack",
         },
       ],
-      accountUses: [],
+      accountUses: [
+        {
+          binding: "inbox",
+          connectionOptions: [
+            {
+              connectionId: "default",
+              requiredScopes: ["https://www.googleapis.com/auth/gmail.modify"],
+            },
+          ],
+          dynamic: false as const,
+          serviceId: "google",
+        },
+      ],
       description: "Triage incoming support requests and notify the team.",
       subscriptions: [
         { config: httpConfig, eventType: "http.request", hookSlot: 0 },
+        {
+          config: {
+            account: {
+              $integrationAccount: {
+                binding: "inbox",
+                serviceId: "google",
+              },
+            },
+          },
+          eventType: "gmail.message.received",
+          hookSlot: 1,
+        },
       ],
     }
     await trx
@@ -423,9 +450,7 @@ export async function seed(db: Kysely<DB>) {
       .values([
         {
           accountLinkId: accountLinks.find(
-            ({ accountId }) =>
-              accountId ===
-              accounts.find(({ serviceId }) => serviceId === "google")!.id,
+            ({ accountId }) => accountId === googleAccount.id,
           )!.id,
           binding: "inbox",
           deploymentId: activeDeployment.id,
@@ -461,6 +486,23 @@ export async function seed(db: Kysely<DB>) {
       })
       .returning("id")
       .executeTakeFirstOrThrow()
+    // The subscription below must reference the mailbox source inserted here.
+    const gmailSource = await trx
+      .insertInto("eventSource")
+      .values({
+        hash: hashEventSource({
+          key: googleAccount.serviceSub,
+          type: "gmail.mailbox",
+        }),
+        key: JSON.stringify(googleAccount.serviceSub),
+        reconciliationError:
+          "Gmail delivery is intentionally disabled in seeded data.",
+        state: { status: "inactive" },
+        status: "inactive",
+        type: "gmail.mailbox",
+      })
+      .returning("id")
+      .executeTakeFirstOrThrow()
     const cronSource = await trx
       .insertInto("eventSource")
       .values({
@@ -484,6 +526,14 @@ export async function seed(db: Kysely<DB>) {
           eventSourceId: httpSource.id,
           eventType: "http.request",
           hookSlot: 0,
+        },
+        {
+          automationId: triageAutomation.id,
+          config: { account: googleAccount.id },
+          deploymentId: activeDeployment.id,
+          eventSourceId: gmailSource.id,
+          eventType: "gmail.message.received",
+          hookSlot: 1,
         },
         {
           automationId: digestAutomation.id,
