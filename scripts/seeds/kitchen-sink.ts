@@ -376,8 +376,14 @@ export async function seed(db: Kysely<DB>) {
         },
       ],
       description: "Triage incoming support requests and notify the team.",
+      scopes: [],
       subscriptions: [
-        { config: httpConfig, eventType: "http.request", hookSlot: 0 },
+        {
+          config: httpConfig,
+          eventType: "http.request",
+          hookSlot: 0,
+          scopePath: [],
+        },
         {
           config: {
             account: {
@@ -389,6 +395,7 @@ export async function seed(db: Kysely<DB>) {
           },
           eventType: "gmail.message.received",
           hookSlot: 1,
+          scopePath: [],
         },
       ],
     }
@@ -416,8 +423,14 @@ export async function seed(db: Kysely<DB>) {
             accountDeclarations: [],
             accountUses: [],
             description: "Summarize support activity every weekday morning.",
+            scopes: [],
             subscriptions: [
-              { config: cronConfig, eventType: "cron.tick", hookSlot: 0 },
+              {
+                config: cronConfig,
+                eventType: "cron.tick",
+                hookSlot: 0,
+                scopePath: [],
+              },
             ],
           },
         },
@@ -440,6 +453,7 @@ export async function seed(db: Kysely<DB>) {
             ],
             accountUses: [],
             description: "Copy paid invoices into the finance warehouse.",
+            scopes: [],
             subscriptions: [],
           },
         },
