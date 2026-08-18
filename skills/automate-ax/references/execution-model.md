@@ -56,11 +56,13 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 | `fallback(values)` | Select the first declared signal that does not close; an earlier pending signal blocks later inputs. |
 | `race(values)` | Persist the earliest emitted or failed input by durable outcome order; closed inputs leave the race. |
 | `correlate(streams, options?)` | Eagerly consume one exact-key value from every `withIndex()` signal into a child context with merged parent history. |
-| `scope(dependenciesOrOptions?, fn)` | Traverse `fn` in an isolated durable hook namespace and optionally give every declaration inherited dependencies and UI presentation metadata. |
+| `scope(fn, options?)` / `scope(dependencies, fn, options?)` | Traverse `fn` in an isolated durable hook namespace and optionally give every declaration inherited dependencies and UI presentation metadata. |
 | `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary scoped gates so only the selected side's actions execute. |
-| `closed(value)` / `failed(value)` | Project the selected non-value terminal outcome into a regular signal and close when that outcome did not occur. |
+| `outcome(value)` | Convert success, failure, or closure into an ordinary tagged value. |
+| `succeeded(value)` / `failed(value)` / `closed(value)` | Emit a boolean after the source terminates. |
+| `onSuccess(value)` / `onFailure(value)` / `onClose(value)` | Emit the selected terminal value and close for the other outcomes. |
 
-Use `scope` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A scope gives nested durable declarations their own hook namespace. Pass `{ name, presentation }` when the section should also appear as a named composition in the execution UI. The callback still runs synchronously during composition.
+Use `scope` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A scope gives nested durable declarations their own hook namespace. Pass `{ name, presentation }` last when the section should also appear as a named composition in the execution UI. The callback still runs synchronously during composition.
 
 Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and creates a child context whose merged parent history can resolve the original indexed streams. The returned `Signal<null>` represents completion of the correlation boundary.
 
