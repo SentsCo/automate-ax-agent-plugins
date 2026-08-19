@@ -8,6 +8,7 @@ import { sql, type Kysely } from "kysely"
 import { z } from "zod"
 
 const SEED_USER_EMAIL = "zachsents@gmail.com"
+const DEV_USER_EMAIL = "dev@automate.test"
 const SEED_ORGANIZATION_SLUG = "automate-ax-dev-seed"
 const HOUR_MS = 60 * 60 * 1_000
 const DAY_MS = 24 * HOUR_MS
@@ -69,6 +70,21 @@ export async function seed(db: Kysely<DB>) {
       )
       .returning(["email", "id"])
       .executeTakeFirstOrThrow()
+    const developmentUser = await trx
+      .insertInto("user")
+      .values({
+        email: DEV_USER_EMAIL,
+        emailVerified: true,
+        name: "Development User",
+      })
+      .onConflict((conflict) =>
+        conflict.column("email").doUpdateSet({
+          emailVerified: true,
+          name: "Development User",
+        }),
+      )
+      .returning("id")
+      .executeTakeFirstOrThrow()
     // Keep the teammate named because its generated ID belongs in the membership.
     const teammate = await trx
       .insertInto("user")
@@ -107,6 +123,11 @@ export async function seed(db: Kysely<DB>) {
           organizationId: organization.id,
           role: "owner",
           userId: user.id,
+        },
+        {
+          organizationId: organization.id,
+          role: "owner",
+          userId: developmentUser.id,
         },
         {
           organizationId: organization.id,
@@ -831,6 +852,7 @@ export async function seed(db: Kysely<DB>) {
     return {
       activeDeploymentId: activeDeployment.id,
       actionCount: actions.length,
+      developmentUser,
       organization,
       supportProject,
       user,
@@ -841,6 +863,7 @@ export async function seed(db: Kysely<DB>) {
     [
       "Seeded local development data.",
       `User: ${result.user.email} (${result.user.id})`,
+      `Development user: ${DEV_USER_EMAIL} (${result.developmentUser.id})`,
       `Organization: ${result.organization.name} (${result.organization.id})`,
       `Project: ${result.supportProject.name} (${result.supportProject.id})`,
       `Active deployment: ${result.activeDeploymentId}`,
