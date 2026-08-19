@@ -56,6 +56,7 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 | `fallback(values)` | Select the first declared signal that does not close; an earlier pending signal blocks later inputs. |
 | `race(values)` | Persist the earliest emitted or failed input by durable outcome order; closed inputs leave the race. |
 | `correlate(streams, options?)` | Eagerly consume one exact-key value from every `keyBy()` signal into a child context with merged parent history. |
+| `collect` / `funnel` / `debounce` / `window` | Coordinate a keyed signal per key or an explicitly `globally()` marked signal in one shared partition. |
 | `scope(fn, options?)` / `scope(dependencies, fn, options?)` | Traverse `fn` in an isolated durable hook namespace and optionally give every declaration inherited dependencies and UI presentation metadata. |
 | `branch(condition, whenTrue, whenFalse?)` | Traverse callbacks under complementary scoped gates so only the selected side's actions execute. |
 | `outcome(value)` | Convert success, failure, or closure into an ordinary tagged value. |
@@ -65,6 +66,8 @@ Prefer the shorthand when it stays readable and preserves useful types. TypeScri
 Use `scope` to make a section wait for readiness or successful completion that is not otherwise represented in an operation's inputs. A scope gives nested durable declarations their own hook namespace. Pass `{ name, presentation }` last when the section should also appear as a named composition in the execution UI. The callback still runs synchronously during composition.
 
 Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and creates a child context whose merged parent history can resolve the original indexed streams. The returned `Signal<null>` represents completion of the correlation boundary.
+
+Cross-context aggregators require an explicit partition choice. Use `keyBy()` for independent keyed coordination or `globally()` for one shared partition. Value-preserving routing and timing operators retain that choice.
 
 Every provided `branch` callback is traversed immediately during synchronous composition so its action calls receive deterministic slots. Keep the callbacks pure apart from declaring actions. If both callbacks return signals, `branch` returns a deferred union signal containing the selected result. If either callback returns a signal, both must do so when a false callback is present; a one-sided signal branch closes when false.
 
