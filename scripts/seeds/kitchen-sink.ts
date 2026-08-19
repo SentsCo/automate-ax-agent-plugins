@@ -1,5 +1,9 @@
 import { encode } from "@automate.ax/codec"
-import { getHttpTriggerEndpointKey } from "@automate.ax/catalog"
+import {
+  getDashboardRunEndpointKey,
+  getHttpTriggerEndpointKey,
+  type DashboardRunConfig,
+} from "@automate.ax/catalog"
 import { encryptSecret } from "@internal/api/lib/integrations/crypto"
 import { hashEventSource } from "@internal/api/lib/utils"
 import { runtimeConfig } from "@internal/config/runtime"
@@ -341,6 +345,10 @@ export async function seed(db: Kysely<DB>) {
           projectId: supportProject.id,
         },
         {
+          identityKey: "automations/request-approval.automation.ts",
+          projectId: supportProject.id,
+        },
+        {
           identityKey: "automations/sync-invoices.automation.ts",
           projectId: financeProject.id,
         },
@@ -353,12 +361,139 @@ export async function seed(db: Kysely<DB>) {
     const digestAutomation = automations.find(({ identityKey }) =>
       identityKey.includes("daily-digest"),
     )!
+    const approvalAutomation = automations.find(({ identityKey }) =>
+      identityKey.includes("request-approval"),
+    )!
 
     const httpConfig = { scope: "trigger", waitForResponse: true } as const
     const cronConfig = {
       schedule: "0 9 * * 1-5",
       timeZone: "America/Los_Angeles",
     }
+    const dashboardRunConfig = {
+      description:
+        "Provide the purchase details the finance team should review.",
+      fields: {
+        purchase: {
+          label: "Purchase",
+          placeholder: "Annual design software renewal",
+          type: "text",
+        },
+        vendor: {
+          label: "Vendor",
+          placeholder: "Acme Software",
+          type: "text",
+        },
+        department: {
+          label: "Department",
+          options: [
+            { label: "Engineering", value: "engineering" },
+            { label: "Finance", value: "finance" },
+            { label: "Marketing", value: "marketing" },
+            { label: "Operations", value: "operations" },
+          ],
+          placeholder: "Select a department",
+          type: "select",
+        },
+        costCenter: {
+          label: "Cost center",
+          placeholder: "CC-1042",
+          type: "text",
+        },
+        requesterEmail: {
+          label: "Requester email",
+          placeholder: "you@example.com",
+          type: "email",
+        },
+        ownerEmail: {
+          label: "Implementation owner",
+          placeholder: "owner@example.com",
+          type: "email",
+        },
+        amount: {
+          label: "Amount",
+          min: 1,
+          placeholder: "1200",
+          step: 0.01,
+          type: "number",
+        },
+        licenses: {
+          description: "Number of people who need access.",
+          label: "License count",
+          min: 1,
+          placeholder: "25",
+          type: "number",
+        },
+        priority: {
+          label: "Priority",
+          options: [
+            { label: "Normal", value: "normal" },
+            { label: "Urgent", value: "urgent" },
+          ],
+          placeholder: "Select a priority",
+          type: "select",
+        },
+        billingCadence: {
+          label: "Billing cadence",
+          options: [
+            { label: "Monthly", value: "monthly" },
+            { label: "Annual", value: "annual" },
+            { label: "One time", value: "one-time" },
+          ],
+          placeholder: "Select a cadence",
+          type: "select",
+        },
+        justification: {
+          label: "Business justification",
+          minLength: 10,
+          placeholder: "Explain why this purchase is needed.",
+          type: "textarea",
+        },
+        alternatives: {
+          label: "Alternatives considered",
+          placeholder: "List the alternatives you evaluated.",
+          type: "textarea",
+        },
+        implementationPlan: {
+          label: "Implementation plan",
+          placeholder: "Describe how the team will roll this out.",
+          type: "textarea",
+        },
+        securityNotes: {
+          description: "Include any data access or compliance considerations.",
+          label: "Security notes",
+          placeholder: "Describe the data this vendor will access.",
+          type: "textarea",
+        },
+        referenceUrl: {
+          description: "Optional link to a quote, proposal, or product page.",
+          label: "Reference URL",
+          required: false,
+          type: "url",
+        },
+        securityReviewUrl: {
+          description: "Optional link to the completed security review.",
+          label: "Security review URL",
+          required: false,
+          type: "url",
+        },
+        recurring: {
+          label: "This is a recurring expense",
+          required: false,
+          type: "checkbox",
+        },
+        managerApproved: {
+          label: "My manager approved this request",
+          type: "checkbox",
+        },
+        confirmed: {
+          label: "I confirmed these details are ready for review",
+          type: "checkbox",
+        },
+      },
+      submitLabel: "Request approval",
+      title: "Request purchase approval",
+    } satisfies DashboardRunConfig
     const triagePlan = {
       accountDeclarations: [
         {
@@ -449,6 +584,24 @@ export async function seed(db: Kysely<DB>) {
               {
                 config: cronConfig,
                 eventType: "cron.tick",
+                hookSlot: 0,
+                scopePath: [],
+              },
+            ],
+          },
+        },
+        {
+          automationId: approvalAutomation.id,
+          deploymentId: activeDeployment.id,
+          plan: {
+            accountDeclarations: [],
+            accountUses: [],
+            description: "Route purchase requests to the finance team.",
+            scopes: [],
+            subscriptions: [
+              {
+                config: dashboardRunConfig,
+                eventType: "dashboard.run",
                 hookSlot: 0,
                 scopePath: [],
               },
@@ -551,6 +704,10 @@ export async function seed(db: Kysely<DB>) {
       })
       .returning("id")
       .executeTakeFirstOrThrow()
+    const dashboardRunSourceKey = getDashboardRunEndpointKey({
+      automationId: approvalAutomation.id,
+      hookSlot: 0,
+    })
     const subscriptions = await trx
       .insertInto("eventSubscription")
       .values([
@@ -576,6 +733,29 @@ export async function seed(db: Kysely<DB>) {
           deploymentId: activeDeployment.id,
           eventSourceId: cronSource.id,
           eventType: "cron.tick",
+          hookSlot: 0,
+        },
+        {
+          automationId: approvalAutomation.id,
+          config: dashboardRunConfig,
+          deploymentId: activeDeployment.id,
+          eventSourceId: (
+            await trx
+              .insertInto("eventSource")
+              .values({
+                hash: hashEventSource({
+                  key: dashboardRunSourceKey,
+                  type: "dashboard.endpoint",
+                }),
+                key: JSON.stringify(dashboardRunSourceKey),
+                state: {},
+                status: "active",
+                type: "dashboard.endpoint",
+              })
+              .returning("id")
+              .executeTakeFirstOrThrow()
+          ).id,
+          eventType: "dashboard.run",
           hookSlot: 0,
         },
       ])
