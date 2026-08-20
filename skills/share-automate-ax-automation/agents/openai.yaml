@@ -1,0 +1,4 @@
+interface:
+  display_name: "Share Automate.ax Automation"
+  short_description: "Package an automation as a reusable GitHub repo"
+  default_prompt: "Use $share-automate-ax-automation to package and publish this automation as a lightweight repository."

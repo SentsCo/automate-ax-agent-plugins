@@ -1,6 +1,6 @@
 ---
 name: automate-ax
-description: Build, deploy, operate, debug, and upgrade Automate.ax automation-as-code projects. Use when a user wants to start an Automate.ax project, turn a business process into TypeScript automations, change an existing automation, connect integration accounts, deploy, manage projects or organizations, handle billing, or upgrade the automate.ax SDK and CLI.
+description: Build, adopt, deploy, operate, debug, and upgrade Automate.ax automation-as-code projects. Use when a user wants to start an Automate.ax project, use an automation shared through a repository, turn a business process into TypeScript automations, change an existing automation, connect integration accounts, deploy, manage projects or organizations, handle billing, or upgrade the automate.ax SDK and CLI.
 ---
 
 # Automate.ax
@@ -9,7 +9,7 @@ Own the workflow end to end. Run the CLI, write and validate the automation code
 
 ## Use authoritative sources
 
-- Read [references/documentation.md](references/documentation.md) and open only the public documentation relevant to the task.
+- Read `references/documentation.md` and open only the public documentation relevant to the task.
 - For exact authoring APIs, inspect the project's installed `automate.ax` README, exports, TypeScript declarations, changelog, and nearby examples. The installed version is authoritative.
 - For current CLI options, account state, plan usage, and limits, inspect CLI help and live JSON output. Do not rely on remembered commands or static values.
 
@@ -20,6 +20,15 @@ Own the workflow end to end. Run the CLI, write and validate the automation code
 - Check authentication before setup. Run `init` only when no `automate.config.ts` exists, and drive its project selection, scaffolding, and installation flow.
 - Run interactive commands in a persistent terminal. Let browser authorization open, keep the command alive while it polls, and resume after the user completes the browser step.
 - Never ask the user to paste passwords, API keys, or provider secrets into chat. Leave masked credential prompts active for the user to complete in the terminal.
+
+## Adopt a shared automation
+
+When the user provides a repository containing an Automate.ax automation, treat the existing automation and the user's request as the complete brief. Do not ask what they want to automate when the repository already answers that question.
+
+- Clone or open the repository, read its instructions, inspect the automation's behavior and dependencies, and preserve its committed automation files.
+- Install dependencies with the repository's package manager. When `automate.config.ts` is absent, authenticate the user and run the installed Automate.ax `init` flow in the repository. Remove only the generic example automation added by initialization; do not replace the shared automation.
+- Keep the generated `automate.config.ts`, `.automate/`, credentials, account bindings, deployment URLs, and other user-specific state out of commits.
+- Continue through validation, requested deployment, provider authorization, and a practical smoke test. Pause only for user authorization, secrets that must be entered privately, a material missing choice, or an external action the request did not authorize.
 
 ## Build automations
 
