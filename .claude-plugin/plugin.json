@@ -1,6 +1,6 @@
 {
   "name": "automate-ax",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build, deploy, and maintain Automate.ax automations through an agent-driven workflow.",
   "author": {
     "name": "Automate.ax",

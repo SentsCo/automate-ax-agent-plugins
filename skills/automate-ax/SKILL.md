@@ -5,55 +5,44 @@ description: Build, deploy, operate, debug, and upgrade Automate.ax automation-a
 
 # Automate.ax
 
-Own the workflow end to end. Treat the CLI as an implementation detail: run it, answer its non-secret prompts, write the automation code, validate it, and continue through any requested deployment or maintenance work. Do not hand the user a list of commands when you can perform the work.
+Own the workflow end to end. Run the CLI, write and validate the automation code, complete non-secret prompts, and continue through any requested deployment or maintenance work instead of handing routine steps back to the user.
 
-Keep internal guidance internal. During setup and discovery, talk in terms of what was completed, what the user needs to do, and what they want to automate. Do not volunteer execution-model or platform-architecture details unless the user asks or needs them to make a decision.
+## Use authoritative sources
 
-## Operate the CLI
+- Read [references/documentation.md](references/documentation.md) and open only the public documentation relevant to the task.
+- For exact authoring APIs, inspect the project's installed `automate.ax` README, exports, TypeScript declarations, changelog, and nearby examples. The installed version is authoritative.
+- For current CLI options, account state, plan usage, and limits, inspect CLI help and live JSON output. Do not rely on remembered commands or static values.
 
-- If the current directory is an existing project, work there. Otherwise, create a new project directory before installing packages or writing Automate.ax files. Inspect existing files before changing anything.
-- Follow an explicit package-manager preference. Otherwise, preserve the existing project's package manager or choose an available one for a new project. The examples below use Bun; translate them to the selected package manager without asking the user to choose.
-- For bootstrap and diagnosis without a local installation, run `bunx automate.ax@latest <command>`. Once initialized, prefer the project's installed CLI with `bunx automate.ax <command>` so CLI and SDK stay aligned.
-- Run `bunx automate.ax@latest --help` or the relevant subcommand help when flags or capabilities are uncertain. Use JSON output only for non-interactive inspection; it disables interactive authorization flows.
-- Run interactive commands in a persistent terminal/PTY. Respond to choices from known context instead of asking the user to operate the CLI.
-- Let commands open the user's browser. If a browser cannot open, surface the exact printed URL as a clickable link, keep the command running while it polls, and resume as soon as the user completes the browser step.
-- Never ask the user to paste passwords, API keys, or provider secrets into chat. When a CLI form requires a secret, leave its masked terminal prompt active and ask the user to enter it there.
-- Keep polling login, authorization, checkout, and deployment commands while they are making progress. Do not abandon the workflow after presenting a URL.
+## Operate the project
 
-## Set up a project
-
-1. Inspect the directory for `automate.config.ts`, `package.json`, lockfiles, and existing `*.automation.ts` files.
-2. Check authentication with `bunx automate.ax@latest --json me`. If it reports that the user is not logged in, run `bunx automate.ax@latest login`, allow the browser to open or provide the printed login URL, and wait for the CLI to confirm login.
-3. If no Automate.ax config exists, run `bunx automate.ax@latest init` from the project directory. Let it select or create the project, scaffold the config and example, and install `automate.ax` with the detected package manager.
-4. If a config already exists, do not run `init`; inspect and continue from the current project.
-5. For a generic website handoff with no automation brief yet, finish setup first, then ask what the user wants to automate.
+- Inspect the directory before changing it. Work in an existing Automate.ax project when present; otherwise create a project directory before installing packages or writing files.
+- Preserve the project's package manager. Without a local installation, run the latest CLI package for setup or diagnosis; after initialization, use the project-installed CLI so the CLI and SDK stay aligned.
+- Check authentication before setup. Run `init` only when no `automate.config.ts` exists, and drive its project selection, scaffolding, and installation flow.
+- Run interactive commands in a persistent terminal. Let browser authorization open, keep the command alive while it polls, and resume after the user completes the browser step.
+- Never ask the user to paste passwords, API keys, or provider secrets into chat. Leave masked credential prompts active for the user to complete in the terminal.
 
 ## Build automations
 
-- Before writing or substantially changing automation code, read [references/execution-model.md](references/execution-model.md). Apply that mental model even when the requested workflow sounds sequential.
-- Read the installed `automate.ax` README, exports, and TypeScript declarations plus nearby project examples before choosing APIs. The installed version is authoritative.
-- Implement the user's business process directly as TypeScript in `*.automation.ts` files. Orchestrator functions run directly at runtime; do not build a graph or JSON intermediate.
-- Preserve existing project conventions. Prefer public integration subpaths and service account helpers such as `googleAccount` over low-level account definitions.
-- Infer reasonable defaults and ask only when a missing business decision would materially change behavior or create an unsafe external action.
-- Run the project's formatter, typecheck, and relevant tests after editing. Fix ordinary compatibility errors rather than weakening compiler settings.
+Implement the business process directly as TypeScript in `*.automation.ts` files. Preserve these runtime invariants:
+
+- The automation body composes durable work synchronously; signals are symbolic values, not promises or ordinary control-flow values.
+- External effects belong in actions, while transforms and composition callbacks remain pure and deterministic.
+- Durable declaration order stays stable across replays.
+- Orchestrator functions run directly at runtime; do not construct a graph or JSON intermediate.
+
+Read the relevant action, trigger, signal, and integration documentation before choosing APIs. Preserve project conventions, infer safe defaults, and ask only when a missing business decision would materially change behavior or authorize an external action. Run the project's formatter, typecheck, and relevant tests after editing.
 
 ## Deploy and administer
 
-- Before creating projects, inviting members, or making plan-dependent promises, read [references/plans.md](references/plans.md). Inspect the active organization with `bunx automate.ax@latest --json org show`; live returned limits and current command behavior are authoritative.
-- When the user wants the automation live, run `bunx automate.ax deploy` from the project or pass `--dir` when needed.
-- Drive account selection and connection prompts during deploy. For OAuth, keep the deployment command alive while the user authorizes in the browser. For credential forms, protect secrets as described above.
-- After deployment, read `.automate/deployment.md` and report the deployed automations, trigger URLs, deployment status, and any remaining user action.
-- Use `automate project`, `automate org`, `automate org apikey`, `automate org billing`, and `automate org upgrade` on the user's behalf for administrative work. Inspect command help first when the exact subcommand is unclear.
-- Require explicit user intent before destructive resource deletion, billing changes, invitations, or production deployment when that intent was not already part of the request.
+- Inspect live organization state before project creation, invitations, billing, or other plan-sensitive work.
+- Deploy when the user wants the automation live, and drive account selection and authorization while keeping secrets out of chat.
+- After deployment, inspect `.automate/deployment.md` and report the deployed automations, trigger details, status, and any remaining user action.
+- Inspect the relevant CLI help before administrative work. Require explicit intent for destructive resource deletion, invitations, billing changes, or production deployment when the request did not already authorize them.
 
-## Upgrade an existing project
+## Upgrade
 
-1. Inspect the current `automate.ax` version, lockfile, source, and working-tree state.
-2. Update `automate.ax` to the latest release with the project's existing package manager; do not introduce a second lockfile.
-3. Read the installed package's current README, declarations, and changelog as needed. Update automation code and config to the current API instead of leaving compatibility aliases.
-4. Run the project's checks and fix failures caused by the upgrade.
-5. Redeploy only when the user asked to update the live project, then complete any new authorization flow and verify the deployment manifest.
+Preserve the existing package manager and lockfile, update `automate.ax`, then use the installed package's current declarations and changelog to update code and configuration. Run the project checks. Redeploy only when the user asked to update the live project.
 
 ## Finish
 
-Report what was created or changed, which checks passed, whether authentication and deployment completed, and any URL or action that still needs the user. A setup task is not complete merely because the CLI was installed.
+Report what changed, which checks passed, whether authentication and deployment completed, and any action still needed from the user.
