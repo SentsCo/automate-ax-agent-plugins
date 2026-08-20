@@ -9,7 +9,7 @@ Own the workflow end to end. Run the CLI, write and validate the automation code
 
 ## Use authoritative sources
 
-- Read `references/documentation.md` and open only the public documentation relevant to the task.
+- Use the public documentation index at `https://docs.automate.ax/llms.txt` to discover current pages, then open only the documentation relevant to the task.
 - For exact authoring APIs, inspect the project's installed `automate.ax` README, exports, TypeScript declarations, changelog, and nearby examples. The installed version is authoritative.
 - For current CLI options, account state, plan usage, and limits, inspect CLI help and live JSON output. Do not rely on remembered commands or static values.
 
