@@ -67,7 +67,7 @@ Use `scope` to make a section wait for readiness or successful completion that i
 
 Correlation key selectors are pure unary transforms, not pairwise predicates. Each selector runs once for its own arriving value; matching uses the encoded key index. A match is one-to-one and creates a child context whose merged parent history can resolve the original indexed streams. Set `ordered: true` to require streams to arrive in array order. The returned `Signal<null>` represents completion of the correlation boundary.
 
-Cross-context aggregators require an explicit partition choice. Use `keyBy()` for independent keyed coordination or `globally()` for one shared partition. Value-preserving routing and timing operators retain that choice.
+Cross-context aggregators require an explicit partition choice. Use `keyBy()` for independent keyed coordination or `globally()` for one shared partition. Value-preserving operators and same-partition aggregates from `collect`, buffered `funnel`, and `window` retain that choice. Collected and buffered outputs are nonempty arrays.
 
 Every provided `branch` callback is traversed immediately during synchronous composition so its action calls receive deterministic slots. Keep the callbacks pure apart from declaring actions. If both callbacks return signals, `branch` returns a deferred union signal containing the selected result. If either callback returns a signal, both must do so when a false callback is present; a one-sided signal branch closes when false.
 
