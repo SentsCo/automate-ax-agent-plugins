@@ -41,6 +41,16 @@ Implement the business process directly as TypeScript in `*.automation.ts` files
 
 Read the relevant action, trigger, signal, and integration documentation before choosing APIs. Preserve project conventions, infer safe defaults, and ask only when a missing business decision would materially change behavior or authorize an external action. Run the project's formatter, typecheck, and relevant tests after editing.
 
+## Run one-off work
+
+When the user asks to try, test, or perform something once rather than build a lasting feature, use an ephemeral automation instead of turning it into permanent project behavior.
+
+- Use the current project only when the task depends on its code, configuration, or account bindings. Otherwise, create a separate temporary directory and Automate.ax project so the work does not alter an unrelated repository or deployment.
+- Build the smallest useful automation around `onHttpRequest`. Prefer a JSON request body for structured or sensitive input, and never put secrets in query parameters.
+- Use `waitForResponse: true` with `respondToHttpRequest` only when the result should be returned to the caller and the work is expected to finish within the HTTP response window. Otherwise, accept the request asynchronously and inspect the completed run.
+- When the request authorizes execution, deploy the automation, read its endpoint from `.automate/deployment.md`, invoke it with `curl`, and verify the outcome. Do not stop after writing code or ask the user to run routine commands.
+- Keep ephemeral source uncommitted unless the user asks to preserve it. Clean up local temporary files after verification, do not leave a temporary endpoint or project active unintentionally, and get authorization before deleting deployed resources or changing a pre-existing deployment for cleanup.
+
 ## Deploy and administer
 
 - Inspect live organization state before project creation, invitations, billing, or other plan-sensitive work.
