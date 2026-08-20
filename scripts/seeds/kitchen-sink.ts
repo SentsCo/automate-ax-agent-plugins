@@ -373,19 +373,23 @@ export async function seed(db: Kysely<DB>) {
     const dashboardRunConfig = {
       description:
         "Provide the purchase details the finance team should review.",
-      fields: {
-        purchase: {
+      fields: [
+        {
+          defaultValue: "Annual design software renewal",
           label: "Purchase",
+          name: "purchase",
           placeholder: "Annual design software renewal",
           type: "text",
         },
-        vendor: {
+        {
           label: "Vendor",
+          name: "vendor",
           placeholder: "Acme Software",
           type: "text",
         },
-        department: {
+        {
           label: "Department",
+          name: "department",
           options: [
             { label: "Engineering", value: "engineering" },
             { label: "Finance", value: "finance" },
@@ -395,37 +399,45 @@ export async function seed(db: Kysely<DB>) {
           placeholder: "Select a department",
           type: "select",
         },
-        costCenter: {
+        {
           label: "Cost center",
+          name: "costCenter",
           placeholder: "CC-1042",
           type: "text",
         },
-        requesterEmail: {
+        {
           label: "Requester email",
+          name: "requesterEmail",
           placeholder: "you@example.com",
           type: "email",
         },
-        ownerEmail: {
+        {
           label: "Implementation owner",
+          name: "ownerEmail",
           placeholder: "owner@example.com",
           type: "email",
         },
-        amount: {
+        {
+          defaultValue: 1_200,
           label: "Amount",
           min: 1,
+          name: "amount",
           placeholder: "1200",
           step: 0.01,
           type: "number",
         },
-        licenses: {
+        {
           description: "Number of people who need access.",
           label: "License count",
           min: 1,
+          name: "licenses",
           placeholder: "25",
           type: "number",
         },
-        priority: {
+        {
+          defaultValue: "normal",
           label: "Priority",
+          name: "priority",
           options: [
             { label: "Normal", value: "normal" },
             { label: "Urgent", value: "urgent" },
@@ -433,66 +445,109 @@ export async function seed(db: Kysely<DB>) {
           placeholder: "Select a priority",
           type: "select",
         },
-        billingCadence: {
+        {
+          defaultValue: "annual",
           label: "Billing cadence",
+          name: "billingCadence",
           options: [
             { label: "Monthly", value: "monthly" },
             { label: "Annual", value: "annual" },
             { label: "One time", value: "one-time" },
           ],
-          placeholder: "Select a cadence",
-          type: "select",
+          type: "radio",
         },
-        justification: {
+        {
+          defaultValue: ["finance"],
+          label: "Review teams",
+          name: "reviewTeams",
+          options: [
+            { label: "Finance", value: "finance" },
+            { label: "Legal", value: "legal" },
+            { label: "Security", value: "security" },
+          ],
+          placeholder: "Select review teams",
+          type: "multi-select",
+        },
+        {
+          label: "Requester phone",
+          name: "requesterPhone",
+          placeholder: "+1 415 555 0100",
+          type: "phone",
+        },
+        {
+          label: "Needed by",
+          min: "2026-08-19",
+          name: "neededBy",
+          type: "date",
+        },
+        {
+          label: "Review meeting",
+          name: "reviewMeeting",
+          step: 900,
+          type: "datetime",
+        },
+        {
           label: "Business justification",
           minLength: 10,
+          name: "justification",
           placeholder: "Explain why this purchase is needed.",
           type: "textarea",
         },
-        alternatives: {
+        {
           label: "Alternatives considered",
+          name: "alternatives",
           placeholder: "List the alternatives you evaluated.",
           type: "textarea",
         },
-        implementationPlan: {
+        {
           label: "Implementation plan",
+          name: "implementationPlan",
           placeholder: "Describe how the team will roll this out.",
           type: "textarea",
         },
-        securityNotes: {
+        {
           description: "Include any data access or compliance considerations.",
           label: "Security notes",
+          name: "securityNotes",
           placeholder: "Describe the data this vendor will access.",
           type: "textarea",
         },
-        referenceUrl: {
+        {
           description: "Optional link to a quote, proposal, or product page.",
           label: "Reference URL",
+          name: "referenceUrl",
           required: false,
           type: "url",
         },
-        securityReviewUrl: {
+        {
           description: "Optional link to the completed security review.",
           label: "Security review URL",
+          name: "securityReviewUrl",
           required: false,
           type: "url",
         },
-        recurring: {
+        {
           label: "This is a recurring expense",
-          required: false,
+          name: "recurring",
           type: "checkbox",
         },
-        managerApproved: {
+        {
           label: "My manager approved this request",
+          name: "managerApproved",
           type: "checkbox",
         },
-        confirmed: {
+        {
           label: "I confirmed these details are ready for review",
+          name: "confirmed",
+          required: true,
           type: "checkbox",
         },
-      },
+      ],
       submitLabel: "Request approval",
       title: "Request purchase approval",
+    } satisfies DashboardRunConfig
+    const directDashboardRunConfig = {
+      title: "Rebuild purchase index",
     } satisfies DashboardRunConfig
     const triagePlan = {
       accountDeclarations: [
@@ -605,6 +660,12 @@ export async function seed(db: Kysely<DB>) {
                 hookSlot: 0,
                 scopePath: [],
               },
+              {
+                config: directDashboardRunConfig,
+                eventType: "dashboard.run",
+                hookSlot: 1,
+                scopePath: [],
+              },
             ],
           },
         },
@@ -708,6 +769,10 @@ export async function seed(db: Kysely<DB>) {
       automationId: approvalAutomation.id,
       hookSlot: 0,
     })
+    const directDashboardRunSourceKey = getDashboardRunEndpointKey({
+      automationId: approvalAutomation.id,
+      hookSlot: 1,
+    })
     const subscriptions = await trx
       .insertInto("eventSubscription")
       .values([
@@ -757,6 +822,29 @@ export async function seed(db: Kysely<DB>) {
           ).id,
           eventType: "dashboard.run",
           hookSlot: 0,
+        },
+        {
+          automationId: approvalAutomation.id,
+          config: directDashboardRunConfig,
+          deploymentId: activeDeployment.id,
+          eventSourceId: (
+            await trx
+              .insertInto("eventSource")
+              .values({
+                hash: hashEventSource({
+                  key: directDashboardRunSourceKey,
+                  type: "dashboard.endpoint",
+                }),
+                key: JSON.stringify(directDashboardRunSourceKey),
+                state: {},
+                status: "active",
+                type: "dashboard.endpoint",
+              })
+              .returning("id")
+              .executeTakeFirstOrThrow()
+          ).id,
+          eventType: "dashboard.run",
+          hookSlot: 1,
         },
       ])
       .returning(["eventType", "id"])
