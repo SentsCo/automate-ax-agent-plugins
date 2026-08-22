@@ -18,7 +18,7 @@ Own the workflow end to end. Run the command-line tool, write and validate the a
 - Inspect the directory before changing it. Work in an existing Automate.ax project when present. Otherwise, create a project directory before installing packages or writing files.
 - Preserve the project's package manager. Without a local installation, run the command-line package without a version pin for setup or diagnosis. After initialization, use the project-installed command-line tool so it stays aligned with the SDK.
 - Check authentication before setup. Run `init` only when no `automate.config.ts` exists, and drive its project selection, scaffolding, and installation flow.
-- Run interactive commands in a persistent terminal. Let browser authorization open, keep the command alive while it polls, and resume after the user completes the browser step.
+- Run interactive commands in a persistent terminal. Let browser authorization open and keep the command alive while it polls. In a non-interactive terminal, give the user the focused URL from `DEPLOYMENT_AUTHORIZATION_REQUIRED`, then run `automate deployment authorize <deployment-id> --no-open` to wait for that deployment.
 - Never ask the user to paste passwords, API keys, or provider secrets into chat. Leave masked credential prompts active for the user to complete in the terminal.
 
 ## Adopt a shared automation
