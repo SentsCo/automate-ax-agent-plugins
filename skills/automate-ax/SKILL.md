@@ -59,6 +59,14 @@ When the user asks to try, test, or perform something once rather than build a l
 - After deployment, inspect `.automate/deployment.md` and report the deployed automations, trigger details, status, and any remaining user action.
 - Inspect the relevant command-line help before administrative work. Require explicit intent for destructive resource deletion, invitations, billing changes, or production deployment when the request didn't already authorize them.
 
+## Remove a project
+
+When the user asks to remove a project and its work, complete cleanup in this order:
+
+1. While the project is still active, add and run a one-off cleanup automation through its existing account bindings. Remove the external resources the project created and verify the results. If an available integration can't remove a resource, clean up everything it can and record the exact resource or user action that remains.
+2. Inspect projects, active automations, account bindings, and connected accounts with command-line JSON output before deleting Automate.ax resources. Integration accounts belong to the organization and may serve several projects. Even when the command-line output shows that only the target project uses an account, ask whether the user wants it disconnected or revoked.
+3. After the cleanup automation finishes, delete the Automate.ax project and any temporary local files. Report everything you removed and any external cleanup the user still needs to complete.
+
 ## Upgrade
 
 Preserve the existing package manager and lockfile, update `automate.ax`, then use the installed package's current declarations and changelog to update code and configuration. Run the project checks. Redeploy only when the user asked to update the live project.
