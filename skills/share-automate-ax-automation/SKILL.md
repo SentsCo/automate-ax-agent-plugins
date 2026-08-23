@@ -1,34 +1,34 @@
 ---
 name: share-automate-ax-automation
-description: Package an Automate.ax automation as a lightweight reusable repository. Use when a user wants to share, hand off, publish, or extract an existing automation for someone else to initialize with their own Automate.ax project and integration accounts.
+description: Package an Automate.ax automation as a reusable repository. Use when sharing, handing off, publishing, or extracting an automation for someone to initialize with their own project and integration accounts.
 ---
 
 # Share an automation
 
-Create a small, self-contained repository that another user can hand to their coding agent and initialize without inheriting the source project's identity, accounts, or deployment state.
+Create a small repository that another user can initialize without inheriting the source project's identity, accounts, or deployment state.
 
 ## Inspect the source
 
-Read the source project's instructions and the automation, its imports, dependencies, and relevant public Automate.ax documentation. Preserve the automation's behavior while removing unrelated project material. Ask only when the intended automation or repository visibility is genuinely unclear.
+Read the source instructions, automation, imports, dependencies, and relevant public Automate.ax docs. Preserve behavior and remove unrelated project material. Ask only if the target automation or repository visibility is unclear.
 
 ## Package the repository
 
-Use a short repository name beginning with `automate-ax-`. Include only what the shared automation needs:
+Use a short name beginning with `automate-ax-`. Include only:
 
-- `automations/*.automation.ts` and any source files they genuinely depend on
-- a concise `README.md` explaining behavior, inputs, outputs, required integrations, setup, deployment, and realistic security considerations
-- an `AGENTS.md` that identifies the repository as a shared Automate.ax automation and directs the agent to follow `https://docs.automate.ax/guides/agent-setup.md`, the canonical agent entry point
-- minimal Bun and TypeScript metadata needed to install and validate the automation
-- a `.gitignore` covering generated and sensitive state
+- `automations/*.automation.ts` and required source files
+- a concise `README.md` covering behavior, inputs, outputs, integrations, setup, deployment, and realistic security concerns
+- an `AGENTS.md` that identifies the shared automation and directs agents to `https://docs.automate.ax/guides/agent-setup.md`
+- minimal Bun and TypeScript metadata for installation and validation
+- a `.gitignore` for generated and sensitive state
 
-Don't copy `automate.config.ts`, `.automate/`, environment files, credentials, account bindings, deployment URLs, unrelated automations, or personal formatting and linting setup. The recipient's agent creates project-specific configuration by authenticating the user and running Automate.ax `init`.
+Do not copy `automate.config.ts`, `.automate/`, environment files, credentials, account bindings, deployment URLs, unrelated automations, or personal formatting and linting setup. The recipient's agent must authenticate the user and run Automate.ax `init` to create project-specific configuration.
 
-The repository's agent instructions must treat the committed automation as the brief, so the recipient isn't asked what to automate. They should direct the agent to preserve the shared source, remove any generic example created by initialization, validate the project, and continue through deployment and testing when the user's request authorizes those actions.
+The repository's `AGENTS.md` must treat the committed automation as the brief. It must tell the recipient's agent to preserve that source, remove only the generic example created by `init`, validate the project, and continue through deployment and testing when authorized.
 
 ## Validate and publish
 
-Install from the packaged repository with Bun and run its validation command from a clean state. Inspect the exact files before any Git operation.
+Install with Bun and run the packaged repository's validation command from a clean state. Inspect the exact files before any Git operation.
 
-Publishing is an external action. Create a GitHub repository, commit, push, or make it public only when the user explicitly requests those actions. Never infer public visibility. When the user authorizes publishing, stage only the intended files, use the `automate-ax-` name, and verify the remote repository contents and visibility after pushing.
+Publishing is an external action. Create a GitHub repository, commit, push, or make it public only when explicitly requested. Never infer public visibility. When authorized, stage only intended files, use the `automate-ax-` name, and verify the remote contents and visibility after pushing.
 
-Finish with the repository URL or local path, the included automation, validation results, visibility, and any action still required from the recipient.
+Finish with the repository URL or local path, included automation, validation results, visibility, and any action the recipient still needs to take.
