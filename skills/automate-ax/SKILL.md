@@ -39,7 +39,35 @@ Implement the business process directly as TypeScript in `*.automation.ts` files
 - Durable declaration order stays stable across replays.
 - Orchestrator functions run directly at runtime. Don't construct a graph or JSON intermediate.
 
-Read the relevant action, trigger, signal, and integration documentation before choosing APIs. Preserve project conventions, infer safe defaults, and ask only when a missing business decision would materially change behavior or authorize an external action. Run the project's formatter, typecheck, and relevant tests after editing.
+Read the relevant action, trigger, signal, and integration documentation before choosing APIs. Preserve project conventions, infer safe defaults, and ask only when a missing business decision would materially change behavior or authorize an external action.
+
+## Validate in layers
+
+- Always run the project's TypeScript typecheck after a coherent batch of edits and again before finishing or deploying. Automate.ax encodes many authoring rules in its types, including callable inputs and outputs, signal composition, provider shapes, and constrained values. Treat type errors as automation errors instead of relying on deployment to find them. Use the existing project command when one exists. Otherwise, add a project-local TypeScript checker, a strict configuration that covers `automate.config.ts`, automation files, and their helper modules, and a typecheck script using the project's package manager.
+- Run the project's formatter and relevant tests alongside the typecheck.
+- Deployment adds the separate planning checks described in [Deployments and runs](https://docs.automate.ax/concepts/deployments-and-runs.md). A passing typecheck doesn't replace planning, and successful bundling doesn't replace a typecheck.
+- When the user authorizes deployment, require both a successful typecheck and successful deployment planning. Otherwise, finish with local validation and state that you didn't run deployment planning.
+
+## Develop complex automations in slices
+
+For a relatively complex automation, prove uncertain pieces before assembling the complete durable flow. Isolate stages such as a provider lookup, AI generation, data transformation, or output mapping behind clear sample inputs and easy-to-review outputs.
+
+- Use ordinary local tests for pure deterministic code. Use a temporary HTTP-triggered automation when the piece depends on Automate.ax actions, runtime behavior, integration accounts, or real provider responses.
+- Deploy slices to a disposable Automate.ax project by default. A deployment publishes every `*.automation.ts` file as one active project snapshot, so never add a harness to an existing project with unfinished automation files. Use the existing project only when the user explicitly authorizes changing its active deployment and every discovered automation is ready to publish.
+- Keep reusable logic in an ordinary TypeScript module and import it from the temporary harness. Build the smallest `*.automation.ts` wrapper around `onHttpRequest`. Use representative JSON input and return the relevant output with `waitForResponse: true` and `respondToHttpRequest` when it fits within the response window.
+- Typecheck the slice, deploy and invoke it when authorized, and inspect the returned value or complete execution before adding the next stage. Test realistic success and failure inputs that affect how the stage composes with the rest of the automation.
+- Assemble the final automation from the proven pieces, then typecheck the complete project and let deployment planning validate their combined durable structure. Don't assume independently working pieces form a valid plan.
+- Keep harness files uncommitted unless the user asks to preserve them. Delete a disposable test project after verification. If the user authorized a harness in the existing project, remove it and successfully redeploy the final automation set. Don't leave a temporary endpoint or project active unintentionally.
+
+## Test completed behavior end to end
+
+When the user authorizes deployment and execution, exercise the deployed automation with a realistic initiating event and verify its observable result. Don't stop at a successful deployment when a safe practical test can prove the behavior.
+
+- Bring up a companion fixture automation when it can create the real upstream event. For example, test a Gmail auto-labeling automation with another automation that sends one or several identifiable test emails, then verify that Gmail applied the expected labels.
+- Alternatively, add a temporary manual trigger such as `onDashboardRun` with form fields or `onHttpRequest` with a JSON body. It can drive the same reusable logic with controlled input or create the event that starts the target automation. An automation may have several triggers when a manual fixture belongs alongside its real trigger.
+- Use realistic fixture variations for filters, branches, fan-out, batching, or generated content. Inspect both the resulting execution and the external side effect instead of treating trigger acceptance as success.
+- Prefer a disposable project for companion fixtures that can create the real event across projects. Adding a fixture or manual trigger to an existing project requires explicit authorization to change its active deployment.
+- Remove companion fixture automations and temporary manual triggers after the end-to-end test, then successfully redeploy the intended final automation set. Keep a test trigger only when the user asks for an ongoing manual or diagnostic entry point.
 
 ## Run one-off work
 
@@ -50,6 +78,7 @@ When the user asks to try, test, or perform something once rather than build a l
 - Use `waitForResponse: true` with `respondToHttpRequest` only when the caller needs the result and the work can finish within the HTTP response window.
 - For asynchronous work, start `automate data follow` before invoking the endpoint and wait for its ready message. Capture the `eventId` from the `202` receipt, then use the polling and inspection queries in [Query execution data](https://docs.automate.ax/guides/query-execution-data.md). Use `automate search` for ranked discovery across synchronized failures, actions, outputs, logs, traces, payloads, and identifiers. Use SQL for exact completion checks and joins. A run starts at a root context and can include descendant contexts created by fan-out or continuations. Inspect the complete context family and its actions, not only the newest row.
 - When the request authorizes execution, deploy the automation, read its endpoint from `.automate/deployment.md`, invoke it with `curl`, and verify the outcome. Don't stop after writing code or ask the user to run routine commands.
+- Treat one-time setup automations as disposable. After setup succeeds, remove their source. If the user's request includes deployment, redeploy the project without them so they don't remain visible. Preserve one only when the user asks for a repeatable setup or maintenance tool.
 - Keep ephemeral source uncommitted unless the user asks to preserve it. Clean up local temporary files after verification, don't leave a temporary endpoint or project active unintentionally, and get authorization before deleting deployed resources or changing a pre-existing deployment for cleanup.
 
 ## Deploy and administer
