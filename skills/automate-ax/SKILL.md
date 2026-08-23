@@ -17,7 +17,7 @@ Complete the requested workflow. Run the CLI, edit and validate code, answer non
 
 - Inspect the directory first. Use an existing Automate.ax project when present. Otherwise create a project directory before installing packages or writing files.
 - Preserve the package manager. Before initialization, run the CLI package without a version pin if no local copy exists. After initialization, use the project-installed CLI so it matches the SDK.
-- Check authentication first. Run `init` only without an `automate.config.ts`, and drive its project selection, scaffolding, and installation prompts.
+- Check authentication first. Prefer `--json` with explicit selectors and non-interactive options for routine commands. Run `init` only without an `automate.config.ts`. When creating a project, pass the returned project ID to `init --project <project-id> --json`.
 - Run interactive commands in a persistent terminal. Let browser authorization open and keep the command alive while it polls. In a non-interactive terminal, give the user the focused URL from `DEPLOYMENT_AUTHORIZATION_REQUIRED`, then wait with `automate deployment authorize <deployment-id> --no-open`.
 - Never ask the user to paste passwords, API keys, or provider secrets into chat. Leave masked terminal prompts for the user.
 
@@ -41,11 +41,10 @@ Preserve these runtime rules:
 
 ## Validate in layers
 
-- Run the project TypeScript typecheck after each coherent edit and before finishing or deploying. Types enforce callable inputs and outputs, signal composition, provider shapes, and constrained values. Treat type errors as automation errors.
-- Use the existing typecheck command. If none exists, add a project-local TypeScript checker, a strict configuration covering `automate.config.ts`, automation files, and helpers, and a package-manager script.
+- Run the project's TypeScript typecheck after each coherent edit and before finishing or deploying when one exists. Types enforce callable inputs and outputs, signal composition, provider shapes, and constrained values. Treat type errors as automation errors. `automate init` scaffolds a strict `tsconfig.json` for editor and agent diagnostics without imposing project scripts or extra tooling.
 - Run the formatter and relevant tests with the typecheck.
 - Deployment planning checks durable structure separately. Follow [Deployments and runs](https://docs.automate.ax/concepts/deployments-and-runs.md). A passing typecheck does not replace planning. Successful bundling does not replace type checking.
-- Before an authorized deployment, require a successful typecheck and plan. Without deployment authorization, finish with local validation and say planning was not run.
+- Before an authorized deployment, require successful available local checks and planning. Without deployment authorization, finish with local validation and say planning was not run.
 
 ## Prove complex work in slices
 
