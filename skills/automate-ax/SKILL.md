@@ -32,6 +32,13 @@ When adopting a shared repository, treat its automation and the user's request a
 
 Implement the business process in `*.automation.ts` files. Read the relevant action, trigger, signal, and integration docs first. Follow project conventions and infer safe defaults. Ask only when a missing business choice changes behavior or authorizes an external action.
 
+### Use unsupported integrations
+
+- When Automate.ax doesn't provide an action, use a [custom action](https://docs.automate.ax/concepts/custom-integrations.md). Its handler can call the provider with `fetch` and use the runtime APIs and `npm` packages available to deployed project code.
+- Automate.ax can't securely store or inject credentials for unsupported services yet. For now, hardcode a restricted credential inside the custom action handler's closure. Never pass it through action inputs or signals because they become durable run data. Never commit automation source containing the credential to a public repository, and never ask the user to paste it into chat. Have the user add it locally when needed. This workaround is temporary until Automate.ax supports custom secret management.
+- Automate.ax doesn't support fully custom triggers. When the provider supports webhooks, use an [`onHttpRequest`](https://docs.automate.ax/concepts/custom-triggers.md) trigger and register its deployed URL with the provider. If the provider doesn't support webhooks, explain that there is no equivalent custom trigger today.
+- Request a packaged integration through the [integration request form](https://automate.ax/feedback?prefill_What%20would%20you%20like%20us%20to%20know%3F=Integration%20request%3A%20). Automate.ax can usually ship requested integrations within one or two days.
+
 Preserve these runtime rules:
 
 - The automation body composes durable work synchronously. Signals are symbolic values, not promises or ordinary control-flow values.
