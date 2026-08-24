@@ -38,6 +38,11 @@ Preserve these runtime rules:
 - Put external effects in actions. Keep transforms and composition callbacks pure and deterministic.
 - Keep durable declaration order stable across replays.
 - Orchestrator functions run directly. Do not build a graph or JSON intermediate.
+- Deployed project code runs on pinned Bun 1.4 for ARM64 Linux. Read the [runtime guide](https://docs.automate.ax/concepts/bun-runtime.md) before choosing runtime APIs or dependencies.
+- Use standard Web APIs, Bun built-ins, compatible Node.js APIs, and packages from `npm`. Install dependencies with the project's package manager and never rely on production auto-install. Check Bun's compatibility table before using a package that depends on a specific Node.js API.
+- Prefer Bun built-ins when they remove native dependencies. In particular, use `Bun.Image` before adding Sharp for supported JPEG, PNG, or WebP transformations. Pass untrusted images as bytes and set `maxPixels`.
+- Install `@types/bun` and include `"bun"` in `compilerOptions.types` when code uses the `Bun` global.
+- Finish all work before an action handler returns. Don't use long-lived servers, background processes, or `Bun.cron`. Use Automate.ax triggers such as `onSchedule` for durable scheduling.
 
 ## Validate in layers
 
