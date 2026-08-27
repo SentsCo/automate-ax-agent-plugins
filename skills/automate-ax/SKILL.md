@@ -49,6 +49,7 @@ Implement the business process in `*.automation.ts` files. Read the relevant act
 Preserve these runtime rules:
 
 - The automation body composes durable work synchronously. Signals are symbolic values, not promises or ordinary control-flow values.
+- Use the [`t` tagged template](https://docs.automate.ax/reference/signals/interpolate-strings) whenever a string interpolates signals. Ordinary JavaScript template literals try to convert signals to strings before their values exist.
 - Put external effects in actions. Keep transforms and composition callbacks pure and deterministic.
 - Keep durable declaration order stable across replays.
 - Orchestrator functions run directly. Do not build a graph or JSON intermediate.
