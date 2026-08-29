@@ -7,7 +7,7 @@ description: Build and operate Automate.ax automation-as-code projects. Use for 
 
 Complete the user's original request. Don't stop after setup or explain this skill as the result.
 
-Read `https://docs.automate.ax/llms.txt`, then open only the relevant Markdown pages it links. Don't fetch `llms-full.txt` during normal work. Inspect the installed `automate.ax` TypeScript declarations for exact action and trigger shapes, and run command-line `--help` before using an unfamiliar command. Live state and the installed package are authoritative.
+Read `https://docs.automate.ax/.well-known/llms.txt`, then open only the relevant Markdown pages it links. Don't fetch `llms-full.txt` during normal work. Inspect the installed `automate.ax` TypeScript declarations for exact action and trigger shapes, and run command-line `--help` before using an unfamiliar command. Live state and the installed package are authoritative.
 
 Handle routine directory setup, project creation or adoption, initialization, authoring, validation, and terminal prompts yourself. Preserve an existing repository's package manager, instructions, automation files, and user-specific ignore rules. Don't commit credentials, account bindings, deployment URLs, `.automate/`, or generated local configuration.
 
