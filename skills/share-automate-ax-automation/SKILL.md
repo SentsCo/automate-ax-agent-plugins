@@ -17,7 +17,7 @@ Use a short name beginning with `automate-ax-`. Include only:
 
 - `automations/*.automation.ts` and required source files
 - a concise `README.md` covering behavior, inputs, outputs, integrations, setup, deployment, and realistic security concerns
-- an `AGENTS.md` that identifies the shared automation and directs agents to `https://docs.automate.ax/guides/agent-setup.md`
+- an `AGENTS.md` that identifies the shared automation, directs agents to `https://docs.automate.ax/llms.txt`, and tells them to use the primary Automate.ax skill
 - minimal Bun and TypeScript metadata for installation and validation
 - a `.gitignore` for generated and sensitive state
 
