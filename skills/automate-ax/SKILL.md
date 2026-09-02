@@ -30,6 +30,7 @@ Pause only for browser authorization, private secret entry, a material unanswere
 ## Build the automation
 
 - Read each trigger, action, signal, and integration contract before use. Preserve project conventions. Ask only when a missing business choice changes a callable or authorized provider effect.
+- Reduce sub-workflows inherited from other automation platforms when they only route events into the same process. One Automate.ax automation may declare several triggers: use `merge` when every occurrence should run the same flow and `correlate` when related occurrences must meet. Use `invokeAutomation` and `onInvocation` only when the target is an independently useful automation boundary.
 - If production needs a Sheet, Form, folder, label, calendar, or similar resource, create it through a temporary setup automation and connected account. Run it once, capture the resource ID, then remove the setup automation.
 
 ## Compose signals instead of awaiting values
